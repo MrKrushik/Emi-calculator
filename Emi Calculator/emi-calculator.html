@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>EMI Calculator</title>
+
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    .chart-box {
+      width: 220px;
+      height: 220px;
+      margin: 0 auto;
+    }
+
+    .chart-box canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
+  </style>
+
+</head>
+
+<body>
+
+<div class="container">
+  <h1 class="text-center my-4">EMI Calculator</h1>
+
+  <div class="row">
+
+    <!-- LEFT SIDE -->
+    <div class="col-md-6">
+      <form class="w-100 px-3">
+
+        <!-- Loan Amount -->
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <label class="form-label mb-0">Loan Amount (₹)</label>
+            <input type="number" id="loanNumber" class="form-control rounded-pill w-25" value="500000">
+          </div>
+
+          <input type="range" id="loanRange" class="form-range w-75" min="50000" max="5000000" step="50000" value="500000">
+          ₹ <span id="loanValue">500000</span>
+        </div>
+
+        <!-- Interest Rate -->
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <label class="form-label mb-0">Interest Rate (%)</label>
+            <input type="number" id="rateNumber" class="form-control rounded-pill w-25" value="9">
+          </div>
+
+          <input type="range" id="rateRange" class="form-range w-75" min="1" max="20" step="0.1" value="9">
+          <span id="rateValue">9</span> %
+        </div>
+
+        <!-- Tenure -->
+        <div class="mb-4">
+          <div class="d-flex align-items-center gap-3 mb-2">
+            <label class="form-label mb-0">Loan Term (Years)</label>
+            <input type="number" id="tenureNumber" class="form-control rounded-pill w-25" value="10">
+          </div>
+
+          <input type="range" id="tenureRange" class="form-range w-75" min="1" max="30" step="1" value="10">
+          <span id="tenureValue">10</span> Years
+        </div>
+
+      </form>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="col-md-6">
+      <div class="card shadow p-4">
+        <h4 class="mb-3">Loan Summary</h4>
+
+
+
+        <div class="chart-box">
+          <canvas id="pieChart"></canvas>
+        </div>
+
+    <div class="d-flex align-items-center">
+      <p>Monthly EMI: <strong id="emi">₹ 0</strong></p>
+      <p>Total Interest: <strong id="interest">₹ 0</strong></p>
+      <p>Total Payment: <strong id="total">₹ 0</strong></p>
+    </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const loanNumber = document.getElementById("loanNumber");
+const loanRange  = document.getElementById("loanRange");
+
+const rateNumber = document.getElementById("rateNumber");
+const rateRange  = document.getElementById("rateRange");
+
+const tenureNumber = document.getElementById("tenureNumber");
+const tenureRange  = document.getElementById("tenureRange");
+
+const loanValue = document.getElementById("loanValue");
+const rateValue = document.getElementById("rateValue");
+const tenureValue = document.getElementById("tenureValue");
+
+const emiEl = document.getElementById("emi");
+const interestEl = document.getElementById("interest");
+const totalEl = document.getElementById("total");
+
+let chart;
+
+function calculateEMI(){
+  const p = +loanNumber.value;
+  const r = +rateNumber.value / 12 / 100;
+  const n = +tenureNumber.value * 12;
+
+  const emi = p * r * Math.pow(1 + r, n) / (Math.pow(1 + r, n) - 1);
+  const totalPayment = emi * n;
+  const totalInterest = totalPayment - p;
+
+  emiEl.textContent = "₹ " + Math.round(emi).toLocaleString("en-IN");
+  interestEl.textContent = "₹ " + Math.round(totalInterest).toLocaleString("en-IN");
+  totalEl.textContent = "₹ " + Math.round(totalPayment).toLocaleString("en-IN");
+
+  updateChart(p, totalInterest);
+}
+
+function updateChart(principal, interest) {
+  if (chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("pieChart"), {
+    type: "doughnut",
+    data: {
+      labels: ["Principal", "Interest"],
+      datasets: [{
+        data: [principal, interest],
+        backgroundColor: ["#9aa8ff", "#4a5cff"]
+      }]
+    },
+    options: {
+      plugins: {
+        legend: { position: "bottom" }
+      }
+    }
+  });
+}
+
+function syncAndUpdate(){
+  loanValue.textContent = loanNumber.value;
+  rateValue.textContent = rateNumber.value;
+  tenureValue.textContent = tenureNumber.value;
+  calculateEMI();
+}
+
+
+loanRange.oninput = () => { loanNumber.value = loanRange.value; syncAndUpdate(); };
+loanNumber.oninput = () => { loanRange.value = loanNumber.value; syncAndUpdate(); };
+
+rateRange.oninput = () => { rateNumber.value = rateRange.value; syncAndUpdate(); };
+rateNumber.oninput = () => { rateRange.value = rateNumber.value; syncAndUpdate(); };
+
+tenureRange.oninput = () => { tenureNumber.value = tenureRange.value; syncAndUpdate(); };
+tenureNumber.oninput = () => { tenureRange.value = tenureNumber.value; syncAndUpdate(); };
+
+syncAndUpdate();
+</script>
+
+</body>
+</html>
